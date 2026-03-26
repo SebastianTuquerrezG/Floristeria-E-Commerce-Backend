@@ -1,66 +1,84 @@
 package com.floridos.back_admin_management.product;
 
+import com.floridos.back_admin_management.storage.StorageService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
 import java.util.List;
 
-import static com.sun.beans.introspect.PropertyInfo.Name.required;
-
 @RestController
-@RequestMapping("/api/products")
+@RequiredArgsConstructor
 public class ProductController {
-    @GetMapping("/products")
-    public ResponseEntity<List<Product>> getAllProducts() {
-        List<Product> products = new ArrayList<>();
-        return ResponseEntity.ok(products);
-    }
+    private final ProductService  productService;
+    private final StorageService storageService;
 
-    @GetMapping("/public/products")
+    /* ══════════ RUTAS PÚBLICAS ══════════ */
+
+    /** GET /api/public/products?category=FLORES&type=Rosas&occasion=Boda&inStock=true */
+    @GetMapping("/api/public/products")
     public ResponseEntity<List<Product>> getPublicProducts(
-            org.springframework.web.bind.annotation.RequestParam(required = false) String type,
-            org.springframework.web.bind.annotation.RequestParam(required = false) String occasion) {
-        List<Product> products = new ArrayList<>();
-        return ResponseEntity.ok(products);
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) String occasion,
+            @RequestParam(required = false) String color,
+            @RequestParam(required = false) String care,
+            @RequestParam(required = false) String location,
+            @RequestParam(required = false) Boolean inStock
+    ) {
+        return ResponseEntity.ok(productService.findAll(category, type, occasion, color, care, location, inStock));
     }
 
-    @GetMapping("/public/products/{slug}")
-    public ResponseEntity<Product> getPublicProductBySlug(
-            org.springframework.web.bind.annotation.PathVariable String slug) {
-        return ResponseEntity.notFound().build();
-    }
-    // Admin endpoints
-    @GetMapping("/admin/products")
-    public ResponseEntity<List<Product>> getAdminProducts() {
-        List<Product> products = new ArrayList<>();
-        return ResponseEntity.ok(products);
+    /** GET /api/public/products/{slug} */
+    @GetMapping("/api/public/products/{slug}")
+    public ResponseEntity<Product> getProductBySlug(@PathVariable String slug) {
+        return productService.findBySlug(slug)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping("/admin/products")
-    public ResponseEntity<Product> createProduct(@RequestBody Product product) {
-        // implementar lógica de creación
-        return ResponseEntity.ok(product);
+    /* ══════════ RUTAS ADMIN ══════════ */
+    /** GET /api/admin/products */
+    @GetMapping("/api/admin/products")
+    public ResponseEntity<List<Product>> adminGetAll(
+            @RequestParam(required = false) String category
+    ) {
+        return ResponseEntity.ok(productService.findAll(category, null, null, null, null, null, null));
     }
 
-    @PutMapping("/admin/products/{id}")
-    public ResponseEntity<Product> updateProduct(@PathVariable Long id, @RequestBody Product product) {
-        // implementar lógica de actualización
-        return ResponseEntity.ok(product);
+    /** POST /api/admin/products */
+    @PostMapping("/api/admin/products")
+    public ResponseEntity<Product> adminCreate(@RequestBody Product product) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(productService.create(product));
     }
 
-    @DeleteMapping("/admin/products/{id}")
-    public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
-        // implementar lógica de eliminación
-        return ResponseEntity.noContent().build();
+    /** PUT /api/admin/products/{id} */
+    @PutMapping("/api/admin/products/{id}")
+    public ResponseEntity<Product> adminUpdate(@PathVariable Long id, @RequestBody Product product) {
+        try {
+            return ResponseEntity.ok(productService.update(id, product));
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
-    @PostMapping("/admin/upload")
+    /** DELETE /api/admin/products/{id} */
+    @DeleteMapping("/api/admin/products/{id}")
+    public ResponseEntity<Void> adminDelete(@PathVariable Long id) {
+        try {
+            productService.delete(id);
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    /** POST /api/admin/upload — subir imagen */
+    @PostMapping("/api/admin/upload")
     public ResponseEntity<String> uploadImage(@RequestParam("file") MultipartFile file) {
-        // implementar almacenamiento real; aquí se devuelve una URL simulada
-        String url = "/uploads/" + (file != null ? file.getOriginalFilename() : "unknown");
+        String url = storageService.store(file);
         return ResponseEntity.ok(url);
     }
-
 }
