@@ -44,26 +44,32 @@ public class ProductService {
         return productRepository.save(product);
     }
 
+    /**
+     * PATCH semántico: solo pisa los campos que vienen no-nulos en el body.
+     * Así un PUT parcial { "name": "...", "price": 48000 } no borra
+     * description, imageUrl, occasion, etc.
+     */
     @Transactional
     public Product update(Long id, Product incoming) {
-        Product existing = productRepository.findById(id)
+        Product p = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Producto no encontrado: " + id));
 
-        existing.setName(incoming.getName());
-        existing.setDescription(incoming.getDescription());
-        existing.setPrice(incoming.getPrice());
-        existing.setRating(incoming.getRating());
-        existing.setInStock(incoming.getInStock());
-        existing.setImageUrl(incoming.getImageUrl());
-        existing.setSlug(incoming.getSlug());
-        existing.setCategory(incoming.getCategory());
-        existing.setType(incoming.getType());
-        existing.setOccasion(incoming.getOccasion());
-        existing.setColor(incoming.getColor());
-        existing.setLocation(incoming.getLocation());
-        existing.setCare(incoming.getCare());
+        // Solo actualiza si el campo viene en el request (no es null)
+        if (incoming.getName()        != null) p.setName(incoming.getName());
+        if (incoming.getDescription() != null) p.setDescription(incoming.getDescription());
+        if (incoming.getPrice()       != null) p.setPrice(incoming.getPrice());
+        if (incoming.getRating()      != null) p.setRating(incoming.getRating());
+        if (incoming.getInStock()     != null) p.setInStock(incoming.getInStock());
+        if (incoming.getImageUrl()    != null) p.setImageUrl(incoming.getImageUrl());
+        if (incoming.getSlug()        != null) p.setSlug(incoming.getSlug());
+        if (incoming.getCategory()    != null) p.setCategory(incoming.getCategory());
+        if (incoming.getType()        != null) p.setType(incoming.getType());
+        if (incoming.getOccasion()    != null) p.setOccasion(incoming.getOccasion());
+        if (incoming.getColor()       != null) p.setColor(incoming.getColor());
+        if (incoming.getLocation()    != null) p.setLocation(incoming.getLocation());
+        if (incoming.getCare()        != null) p.setCare(incoming.getCare());
 
-        return productRepository.save(existing);
+        return productRepository.save(p);
     }
 
     @Transactional

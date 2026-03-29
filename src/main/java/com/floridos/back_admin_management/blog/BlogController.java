@@ -1,43 +1,60 @@
 package com.floridos.back_admin_management.blog;
 
-@org.springframework.web.bind.annotation.RestController
-@org.springframework.web.bind.annotation.RequestMapping("/api/admin/blog")
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequiredArgsConstructor
 public class BlogController {
 
-    @org.springframework.web.bind.annotation.PostMapping
-    public org.springframework.http.ResponseEntity<java.util.Map<String, Object>> create(
-            @org.springframework.web.bind.annotation.RequestBody java.util.Map<String, Object> body) {
+    private final BlogService blogService;
 
-        java.util.Map<String, Object> response = new java.util.HashMap<>();
-        // Aquí normalmente se guardaría el recurso y se obtendría el id real
-        Long generatedId = 1L;
-        response.put("id", generatedId);
-        response.put("data", body);
+    /* ── Público ── */
 
-        return org.springframework.http.ResponseEntity
-                .status(org.springframework.http.HttpStatus.CREATED)
-                .body(response);
+    @GetMapping("/api/public/blog")
+    public ResponseEntity<List<BlogPost>> getPublished() {
+        return ResponseEntity.ok(blogService.findPublished());
     }
 
-    @org.springframework.web.bind.annotation.PutMapping("/{id}")
-    public org.springframework.http.ResponseEntity<java.util.Map<String, Object>> update(
-            @org.springframework.web.bind.annotation.PathVariable Long id,
-            @org.springframework.web.bind.annotation.RequestBody java.util.Map<String, Object> body) {
-
-        java.util.Map<String, Object> response = new java.util.HashMap<>();
-        response.put("id", id);
-        response.put("data", body);
-
-        return org.springframework.http.ResponseEntity
-                .status(org.springframework.http.HttpStatus.OK)
-                .body(response);
+    @GetMapping("/api/public/blog/{slug}")
+    public ResponseEntity<BlogPost> getBySlug(@PathVariable String slug) {
+        return blogService.findBySlug(slug)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    @org.springframework.web.bind.annotation.DeleteMapping("/{id}")
-    public org.springframework.http.ResponseEntity<Void> delete(
-            @org.springframework.web.bind.annotation.PathVariable Long id) {
+    /* ── Admin ── */
 
-        // Aquí normalmente se eliminaría el recurso
-        return org.springframework.http.ResponseEntity.noContent().build();
+    @GetMapping("/api/admin/blog")
+    public ResponseEntity<List<BlogPost>> adminGetAll() {
+        return ResponseEntity.ok(blogService.findAll());
+    }
+
+    @PostMapping("/api/admin/blog")
+    public ResponseEntity<BlogPost> create(@RequestBody BlogPost post) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(blogService.create(post));
+    }
+
+    @PutMapping("/api/admin/blog/{id}")
+    public ResponseEntity<BlogPost> update(@PathVariable Long id, @RequestBody BlogPost post) {
+        try {
+            return ResponseEntity.ok(blogService.update(id, post));
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @DeleteMapping("/api/admin/blog/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        try {
+            blogService.delete(id);
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 }

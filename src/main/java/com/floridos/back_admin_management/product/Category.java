@@ -1,8 +1,8 @@
 package com.floridos.back_admin_management.product;
 
 public enum Category {
-    FLOWERS,
-    PLANTS,
+    FLORES,
+    PLANTAS,
     SEEDS,
     GARDEN_TOOLS
 }

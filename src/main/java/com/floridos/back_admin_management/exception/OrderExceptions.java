@@ -3,19 +3,19 @@ package com.floridos.back_admin_management.exception;
 public class OrderExceptions {
     public static class OrderNotFoundException extends RuntimeException {
         public OrderNotFoundException() {
-            super("Order not found");
+            super("Orden no encontrada");
         }
-
         public OrderNotFoundException(String message) {
             super(message);
         }
-
-        public OrderNotFoundException(String message, Throwable cause) {
-            super(message, cause);
+        public OrderNotFoundException(Long id) {
+            super("Orden no encontrada con id: " + id);
         }
+    }
 
-        public OrderNotFoundException(Throwable cause) {
-            super(cause);
+    public static class InvalidStatusException extends RuntimeException {
+        public InvalidStatusException(String status) {
+            super("Estado inválido: " + status);
         }
     }
 }

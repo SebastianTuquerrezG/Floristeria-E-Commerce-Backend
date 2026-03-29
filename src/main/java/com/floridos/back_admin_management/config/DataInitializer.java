@@ -5,6 +5,7 @@ import com.floridos.back_admin_management.product.ProductRepository;
 import com.floridos.back_admin_management.user.Role;
 import com.floridos.back_admin_management.user.User;
 import com.floridos.back_admin_management.user.UserRepository;
+import com.floridos.back_admin_management.product.Category;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
