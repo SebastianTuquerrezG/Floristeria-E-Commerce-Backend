@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/client")
 @RequiredArgsConstructor
 public class UserController {
     private final UserService       userService;
